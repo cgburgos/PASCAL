@@ -215,7 +215,7 @@ def webui():
                 for line in file.readlines():
                     gradio_auth_creds += [x.strip() for x in line.split(',')]
 
-        app, local_url, share_url = shared.demo.launch(
+        app, local_url, share_url = shared.demo.queue(concurrency_count=16).launch(
             share=cmd_opts.share,
             server_name=server_name,
             server_port=cmd_opts.port,
@@ -224,7 +224,7 @@ def webui():
             debug=cmd_opts.gradio_debug,
             auth=[tuple(cred.split(':')) for cred in gradio_auth_creds] if gradio_auth_creds else None,
             inbrowser=cmd_opts.autolaunch,
-            prevent_thread_lock=True
+            prevent_thread_lock=True,
         )
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False

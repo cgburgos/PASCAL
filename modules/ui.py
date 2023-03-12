@@ -42,6 +42,9 @@ import modules.hypernetworks.ui
 from modules.generation_parameters_copypaste import image_from_url_text
 import modules.extras
 
+from text_generation import Client, InferenceAPIClient
+
+
 warnings.filterwarnings("default" if opts.show_warnings else "ignore", category=UserWarning)
 
 # this is a fix for Windows users. Without it, javascript files will be served with text/html content-type and the browser will not show any UI
@@ -92,6 +95,109 @@ apply_style_symbol = '\U0001f4cb'  # 📋
 clear_prompt_symbol = '\U0001F5D1'  # 🗑️
 extra_networks_symbol = '\U0001F3B4'  # 🎴
 switch_values_symbol = '\U000021C5' # ⇅
+
+
+
+#NEW FUNCTIONS
+def get_client(model: str):
+    if model == "Rallio67/joi2_20B_instruct_alpha":
+        return Client(os.getenv("JOI_API_URL"))
+    if model == "togethercomputer/GPT-NeoXT-Chat-Base-20B":
+        return Client(os.getenv("OPENCHAT_API_URL"))
+    return InferenceAPIClient(model, token=os.getenv("HF_TOKEN", None))
+
+
+def get_usernames(model: str):
+    if model == "Rallio67/joi2_20B_instruct_alpha":
+        return "User: ", "Joi: "
+    if model == "togethercomputer/GPT-NeoXT-Chat-Base-20B":
+        return "<user>: ", "<bot>: "
+    return "User: ", "Assistant: "
+
+
+def predict(
+        model: str,
+        inputs: str,
+        top_p: float,
+        temperature: float,
+        top_k: int,
+        repetition_penalty: float,
+        watermark: bool,
+        chatbot,
+        history,
+):
+    client = get_client(model)
+    user_name, assistant_name = get_usernames(model)
+
+    history.append(inputs)
+
+    past = []
+    for data in chatbot:
+        user_data, model_data = data
+
+        if not user_data.startswith(user_name):
+            user_data = user_name + user_data
+        if not model_data.startswith("\n\n" + assistant_name):
+            model_data = "\n\n" + assistant_name + model_data
+
+        past.append(user_data + model_data + "\n\n")
+
+    if not inputs.startswith(user_name):
+        inputs = user_name + inputs
+
+    total_inputs = "".join(past) + inputs + "\n\n" + assistant_name
+
+    partial_words = ""
+
+    for i, response in enumerate(client.generate_stream(
+            total_inputs,
+            top_p=top_p if top_p < 1.0 else None,
+            top_k=top_k,
+            truncate=1000,
+            repetition_penalty=repetition_penalty,
+            watermark=watermark,
+            temperature=temperature,
+            max_new_tokens=500,
+            stop_sequences=[user_name.rstrip(), assistant_name.rstrip()],
+    )):
+        if response.token.special:
+            continue
+
+        partial_words = partial_words + response.token.text
+        if partial_words.endswith(user_name.rstrip()):
+            partial_words = partial_words.rstrip(user_name.rstrip())
+        if partial_words.endswith(assistant_name.rstrip()):
+            partial_words = partial_words.rstrip(assistant_name.rstrip())
+
+        if i == 0:
+            history.append(" " + partial_words)
+        else:
+            history[-1] = partial_words
+
+        chat = [
+            (history[i].strip(), history[i + 1].strip()) for i in range(0, len(history) - 1, 2)
+        ]
+        yield chat, history
+
+
+def reset_textbox():
+    return gr.update(value="")
+
+
+title = """<h1 align="center">🔥Large Language Model API 🚀Streaming🚀</h1>"""
+description = """Language models can be conditioned to act like dialogue agents through a conversational prompt that typically takes the form:
+
+```
+User: <utterance>
+Assistant: <utterance>
+User: <utterance>
+Assistant: <utterance>
+...
+```
+
+In this app, you can explore the outputs of multiple LLMs when prompted in this way.
+"""
+
 
 
 def plaintext_to_html(text):
@@ -656,6 +762,8 @@ def create_ui():
     modules.scripts.scripts_img2img.initialize_scripts(is_img2img=True)
 
     with gr.Blocks(analytics_enabled=False) as img2img_interface:
+        
+        
         img2img_prompt, img2img_prompt_styles, img2img_negative_prompt, submit, img2img_interrogate, img2img_deepbooru, img2img_prompt_style_apply, img2img_save_style, img2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button = create_toprow(is_img2img=True)
 
         img2img_prompt_img = gr.File(label="", elem_id="img2img_prompt_image", file_count="single", type="binary", visible=False)
@@ -975,6 +1083,7 @@ def create_ui():
         ui_postprocessing.create_ui()
 
     with gr.Blocks(analytics_enabled=False) as pnginfo_interface:
+        
         with gr.Row().style(equal_height=False):
             with gr.Column(variant='panel'):
                 image = gr.Image(elem_id="pnginfo_image", label="Source", source="upload", interactive=True, type="pil")
@@ -1532,9 +1641,106 @@ def create_ui():
             outputs=[],
         )
 
+
+    # INITIAL MODIFICATIONS
+
+    with gr.Blocks(analytics_enabled=False) as text_inference:
+        #gr.HTML(title)
+        with gr.Column(elem_id="col_container"):
+            #value="Rallio67/joi2_20B_instruct_alpha",
+            model = gr.Radio(
+                value="google/flan-t5-xxl",
+                choices=[
+                    "Rallio67/joi2_20B_instruct_alpha",
+                    "togethercomputer/GPT-NeoXT-Chat-Base-20B",
+                    "google/flan-t5-xxl",
+                    "google/flan-ul2",
+                    "bigscience/bloom",
+                    "bigscience/bloomz",
+                    "EleutherAI/gpt-neox-20b",
+                ],
+                label="Model",
+                interactive=True,
+            )
+            chatbot = gr.Chatbot(elem_id="chatbot")
+            inputs = gr.Textbox(
+                placeholder="Hi there!", label="Type an input and press Enter"
+            )
+            state = gr.State([])
+            b1 = gr.Button(value="Send Message")
+
+            with gr.Accordion("Parameters", open=False):
+                top_p = gr.Slider(
+                    minimum=-0,
+                    maximum=1.0,
+                    value=0.95,
+                    step=0.05,
+                    interactive=True,
+                    label="Top-p (nucleus sampling)",
+                )
+                temperature = gr.Slider(
+                    minimum=-0,
+                    maximum=5.0,
+                    value=0.5,
+                    step=0.1,
+                    interactive=True,
+                    label="Temperature",
+                )
+                top_k = gr.Slider(
+                    minimum=1,
+                    maximum=50,
+                    value=4,
+                    step=1,
+                    interactive=True,
+                    label="Top-k",
+                )
+                repetition_penalty = gr.Slider(
+                    minimum=0.1,
+                    maximum=3.0,
+                    value=1.03,
+                    step=0.01,
+                    interactive=True,
+                    label="Repetition Penalty",
+                )
+                watermark = gr.Checkbox(value=True, label="Text watermarking")
+
+        inputs.submit(
+            predict,
+            [
+                model,
+                inputs,
+                top_p,
+                temperature,
+                top_k,
+                repetition_penalty,
+                watermark,
+                chatbot,
+                state,
+            ],
+            [chatbot, state],
+        )
+        b1.click(
+            predict,
+            [
+                model,
+                inputs,
+                top_p,
+                temperature,
+                top_k,
+                repetition_penalty,
+                watermark,
+                chatbot,
+                state,
+            ],
+            [chatbot, state],
+        )
+        b1.click(reset_textbox, [], [inputs])
+        inputs.submit(reset_textbox, [], [inputs])
+
     interfaces = [
-        (txt2img_interface, "txt2img", "txt2img"),
-        (img2img_interface, "img2img", "img2img"),
+        (txt2img_interface, "Image from Text", "txt2img"),
+        (img2img_interface, "Image from Image", "img2img"),
+        (text_inference, "ChatUNS", "text_inference"),
         (extras_interface, "Extras", "extras"),
         (pnginfo_interface, "PNG Info", "pnginfo"),
         (modelmerger_interface, "Checkpoint Merger", "modelmerger"),
@@ -1563,7 +1769,14 @@ def create_ui():
     extensions_interface = ui_extensions.create_ui()
     interfaces += [(extensions_interface, "Extensions", "extensions")]
 
-    with gr.Blocks(css=css, analytics_enabled=False, title="Stable Diffusion") as demo:
+    with gr.Blocks(css=css, analytics_enabled=False, title="PASCAL") as demo:
+        
+        #ADD THINGS HERE
+        gr.Markdown(value=f"# <center> PASCAL </center>")
+        gr.Markdown(value=f"### <center> UNStudio Imaginarium Creator </center>")
+        #gr.Markdown(value=f"<p> <center> Cristóbal Ignacio Burgos Sanhueza | c.burgos@unstudio.com </center></p>")
+        gr.Markdown(value=f"***")
+        
         with gr.Row(elem_id="quicksettings", variant="compact"):
             for i, k, item in sorted(quicksettings_list, key=lambda x: quicksettings_names.get(x[1], x[0])):
                 component = create_setting_component(k, is_quicksettings=True)
@@ -1784,6 +1997,8 @@ def versions_html():
         xformers_version = "N/A"
 
     return f"""
+
+
 python: <span title="{sys.version}">{python_version}</span>
  • 
 torch: {getattr(torch, '__long_version__',torch.__version__)}
