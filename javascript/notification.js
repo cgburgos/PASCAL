@@ -20,7 +20,7 @@ onUiUpdate(function () {
 	}
 
 	const galleryPreviews = gradioApp().querySelectorAll(
-		'div[id^="tab_"][style*="display: block"] img.h-full.w-full.overflow-hidden'
+		'div[id^="tab_"][style*="display: block"] div[id$="_results"] img.h-full.w-full.overflow-hidden'
 	);
 
 	if (galleryPreviews == null) return;
