@@ -1737,7 +1737,7 @@ def create_ui():
                     btn_clear_conversation = gr.Button("Start New Conversation")
 
                     with gr.Accordion("Advanced parameters", open=False):
-                        prompt_template = gr.Dropdown(label="Set a custom insruction for the chatbot:", value="UNS Assistant", choices=list(ChatGPTtemplates.keys()))
+                        prompt_template = gr.Dropdown(label="Set a profile for the Assistant", value="UNS Assistant", choices=list(ChatGPTtemplates.keys()))
                         prompt_template_preview = gr.Markdown(elem_id="prompt_template_preview")
                         temperature = gr.Slider(minimum=0, maximum=2.0, value=0.7, step=0.1, label="Temperature", info="Higher = more creative/chaotic")
                         max_tokens = gr.Slider(minimum=100, maximum=500, value=300, step=1, label="Max tokens per response")
