@@ -262,6 +262,17 @@ def webui():
             inbrowser=cmd_opts.autolaunch,
             prevent_thread_lock=True,
         )
+        
+        print("\n")
+        print("\n")
+        print("//////////////////////////////////////////////////")
+        print("\n")
+        print("PASCAL Successfully Launched!")
+        print("\n")
+        print("//////////////////////////////////////////////////")
+        print("\n")
+        print("\n")
+        
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False
 
