@@ -1710,19 +1710,9 @@ def create_ui():
         )
 
 
-    # INITIAL MODIFICATIONS
+    # CHAT UNS
 
-    chatGptcss = """
-      #col-container {max-width: 80%; margin-left: auto; margin-right: auto;}
-      #chatbox {min-height: 400px;}
-      #header {text-align: center;}
-      #prompt_template_preview {padding: 1em; border-width: 1px; border-style: solid; border-color: #e0e0e0; border-radius: 4px;}
-      #total_tokens_str {text-align: right; font-size: 0.8em; color: #666;}
-      #label {font-size: 0.8em; padding: 0.5em; margin: 0;}
-      .message { font-size: 1.2em; }
-      """
-
-    with gr.Blocks(css=chatGptcss,analytics_enabled=False) as text_inference:
+    with gr.Blocks(analytics_enabled=False) as text_inference:
         
         state = gr.State(get_empty_state())
 
@@ -1730,7 +1720,7 @@ def create_ui():
         with gr.Column(elem_id="col-container"):
             with gr.Row():
                 with gr.Column():
-                    chatbot = gr.Chatbot(elem_id="chatbox")
+                    chatbot = gr.Chatbot(elem_id="chatbox", label="ChatUNS")
                     input_message = gr.Textbox(show_label=False, placeholder="Enter text and press enter", visible=True).style(container=False)
                     btn_submit = gr.Button("Submit")
                     total_tokens_str = gr.Markdown(elem_id="total_tokens_str")
@@ -1752,6 +1742,8 @@ def create_ui():
         
         text_inference.load(inputs=None, outputs=[prompt_template], queur=False)
 
+    # END CHAT UNS
+    
     interfaces = [
         (txt2img_interface, "Image from Text", "txt2img"),
         (img2img_interface, "Image from Image", "img2img"),
@@ -1791,8 +1783,8 @@ def create_ui():
     with gr.Blocks(css=css, analytics_enabled=False, title="PASCAL") as demo:
         
         #ADD THINGS HERE
-        gr.Markdown(value=f"# <center> PASCAL </center>")
-        gr.Markdown(value=f"### <center> UNStudio Imaginarium Creator </center>")
+        gr.Markdown(value=f"# <center> PASCAL </center>\n#### <center>UNStudio Imaginarium Creator</center>\n<p> <center> R+I Platform</center></p> ", elem_id="PascalTitle")
+        #gr.Markdown(value=f"#### <center> UNStudio Imaginarium Creator </center>")
         #gr.Markdown(value=f"<p> <center> Cristóbal Ignacio Burgos Sanhueza | c.burgos@unstudio.com </center></p>")
         gr.Markdown(value=f"***")
         
