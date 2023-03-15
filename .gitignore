@@ -34,3 +34,7 @@ notification.mp3
 /test/stderr.txt
 /cache.json
 .env
+ProjectDB.xlsx
+MergedProjectDB.json
+MergedCleanProjectDB.json
+UNSFullDB.json
