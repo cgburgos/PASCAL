@@ -6,11 +6,13 @@ import os
 import json
 from dotenv import load_dotenv
 
+from uiTheme import Pascal, Soft
+
+PascalTheme = Pascal()
+
 load_dotenv()
 
-
-with open("modules/api/ChatGPTtemplates.json", "r") as jsonFile:
-    ChatGPTtemplates = json.load(jsonFile)
+ChatGPTtemplates = {"UNS Assistant": "UNS Assistant: "}
 
 prompt_templates = {"UNS Assistant": ChatGPTtemplates["UNS Assistant"]}
 
@@ -84,7 +86,7 @@ css = """
       .message { font-size: 1.2em; }
       """
 
-with gr.Blocks(css=css) as demo:
+with gr.Blocks(css=css, theme=PascalTheme) as demo:
     
     state = gr.State(get_empty_state())
 
@@ -92,11 +94,12 @@ with gr.Blocks(css=css) as demo:
     with gr.Column(elem_id="col-container"):
         with gr.Row():
             with gr.Column():
-                chatbot = gr.Chatbot(elem_id="chatbox")
+                chatbot = gr.Chatbot(elem_id="chatbox", label="HELLO")
                 input_message = gr.Textbox(show_label=False, placeholder="Enter text and press enter", visible=True).style(container=False)
-                btn_submit = gr.Button("Submit")
+                btn_submit = gr.Button("Submit", variant="primary")
                 total_tokens_str = gr.Markdown(elem_id="total_tokens_str")
                 btn_clear_conversation = gr.Button("Start New Conversation")
+                gr.Slider(minimum=0, maximum=2.0, value=0.7, step=0.1, label="Temperature", info="Higher = more creative/chaotic")
 
                 with gr.Accordion("Advanced parameters", open=False):
                     prompt_template = gr.Dropdown(label="Set a custom insruction for the chatbot:", value="UNS Assistant", choices=list(ChatGPTtemplates.keys()))
@@ -114,6 +117,5 @@ with gr.Blocks(css=css) as demo:
     
     demo.load(inputs=None, outputs=[prompt_template], queur=False)
 
-
 demo.queue(concurrency_count=10)
-demo.launch(height='800px', debug=True)
+demo.launch(height='800px', debug=True, server_port=7861)

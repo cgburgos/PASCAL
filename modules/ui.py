@@ -46,7 +46,14 @@ from text_generation import Client, InferenceAPIClient
 from dotenv import load_dotenv
 import openai
 
+
+from .uiTheme import *
+
+PascalTheme = Glass()
+
+
 load_dotenv()
+
 
 
 warnings.filterwarnings("default" if opts.show_warnings else "ignore", category=UserWarning)
@@ -631,7 +638,7 @@ def create_ui():
     modules.scripts.scripts_current = modules.scripts.scripts_txt2img
     modules.scripts.scripts_txt2img.initialize_scripts(is_img2img=False)
 
-    with gr.Blocks(analytics_enabled=False) as txt2img_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as txt2img_interface:
         txt2img_prompt, txt2img_prompt_styles, txt2img_negative_prompt, submit, _, _, txt2img_prompt_style_apply, txt2img_save_style, txt2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button = create_toprow(is_img2img=False)
 
         dummy_component = gr.Label(visible=False)
@@ -829,7 +836,7 @@ def create_ui():
     modules.scripts.scripts_current = modules.scripts.scripts_img2img
     modules.scripts.scripts_img2img.initialize_scripts(is_img2img=True)
 
-    with gr.Blocks(analytics_enabled=False) as img2img_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as img2img_interface:
         
         
         img2img_prompt, img2img_prompt_styles, img2img_negative_prompt, submit, img2img_interrogate, img2img_deepbooru, img2img_prompt_style_apply, img2img_save_style, img2img_paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button = create_toprow(is_img2img=True)
@@ -1147,10 +1154,10 @@ def create_ui():
 
     modules.scripts.scripts_current = None
 
-    with gr.Blocks(analytics_enabled=False) as extras_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as extras_interface:
         ui_postprocessing.create_ui()
 
-    with gr.Blocks(analytics_enabled=False) as pnginfo_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as pnginfo_interface:
         
         with gr.Row().style(equal_height=False):
             with gr.Column(variant='panel'):
@@ -1183,7 +1190,7 @@ def create_ui():
         }
         return interp_descriptions[value]
 
-    with gr.Blocks(analytics_enabled=False) as modelmerger_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as modelmerger_interface:
         with gr.Row().style(equal_height=False):
             with gr.Column(variant='compact'):
                 interp_description = gr.HTML(value=update_interp_description("Weighted sum"), elem_id="modelmerger_interp_description")
@@ -1226,7 +1233,7 @@ def create_ui():
                 with gr.Group(elem_id="modelmerger_results_panel"):
                     modelmerger_result = gr.HTML(elem_id="modelmerger_result", show_label=False)
 
-    with gr.Blocks(analytics_enabled=False) as train_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as train_interface:
         with gr.Row().style(equal_height=False):
             gr.HTML(value="<p style='margin-bottom: 0.7em'>See <b><a href=\"https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Textual-Inversion\">wiki</a></b> for detailed explanation.</p>")
 
@@ -1614,7 +1621,7 @@ def create_ui():
 
         return get_value_for_setting(key), opts.dumpjson()
 
-    with gr.Blocks(analytics_enabled=False) as settings_interface:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as settings_interface:
         with gr.Row():
             with gr.Column(scale=6):
                 settings_submit = gr.Button(value="Apply settings", variant='primary', elem_id="settings_submit")
@@ -1712,7 +1719,7 @@ def create_ui():
 
     # CHAT UNS
 
-    with gr.Blocks(analytics_enabled=False) as text_inference:
+    with gr.Blocks(analytics_enabled=False,theme=PascalTheme) as text_inference:
         
         state = gr.State(get_empty_state())
 
@@ -1780,10 +1787,10 @@ def create_ui():
     for _interface, label, _ifid in interfaces:
         shared.tab_names.append(label)
 
-    with gr.Blocks(css=css, analytics_enabled=False, title="PASCAL") as demo:
+    with gr.Blocks(css=css, analytics_enabled=False, title="PASCAL",theme=PascalTheme) as demo:
         
         #ADD THINGS HERE
-        gr.Markdown(value=f"# <center> PASCAL </center>\n#### <center>UNStudio Imaginarium Creator</center>\n<p> <center> R+I Platform</center></p> ", elem_id="PascalTitle")
+        gr.Markdown(value=f"# <center> PASCAL </center>\n#### <center>UNStudio Imaginarium Creator</center>\n<p> <center> UNStudio.Tools</center></p> ", elem_id="PascalTitle")
         #gr.Markdown(value=f"#### <center> UNStudio Imaginarium Creator </center>")
         #gr.Markdown(value=f"<p> <center> Cristóbal Ignacio Burgos Sanhueza | c.burgos@unstudio.com </center></p>")
         gr.Markdown(value=f"***")
