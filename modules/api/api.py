@@ -5,7 +5,7 @@ import datetime
 import uvicorn
 from threading import Lock
 from io import BytesIO
-from gradio.processing_utils import decode_base64_to_file
+# from gradio.processing_utils import decode_base64_to_file
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from secrets import compare_digest
@@ -329,20 +329,21 @@ class Api:
         return ExtrasSingleImageResponse(image=encode_pil_to_base64(result[0][0]), html_info=result[1])
 
     def extras_batch_images_api(self, req: ExtrasBatchImagesRequest):
-        reqDict = setUpscalers(req)
+        return None
+        # reqDict = setUpscalers(req)
 
-        def prepareFiles(file):
-            file = decode_base64_to_file(file.data, file_path=file.name)
-            file.orig_name = file.name
-            return file
+        # def prepareFiles(file):
+        #     file = decode_base64_to_file(file.data, file_path=file.name)
+        #     file.orig_name = file.name
+        #     return file
 
-        reqDict['image_folder'] = list(map(prepareFiles, reqDict['imageList']))
-        reqDict.pop('imageList')
+        # reqDict['image_folder'] = list(map(prepareFiles, reqDict['imageList']))
+        # reqDict.pop('imageList')
 
-        with self.queue_lock:
-            result = postprocessing.run_extras(extras_mode=1, image="", input_dir="", output_dir="", save_output=False, **reqDict)
+        # with self.queue_lock:
+        #     result = postprocessing.run_extras(extras_mode=1, image="", input_dir="", output_dir="", save_output=False, **reqDict)
 
-        return ExtrasBatchImagesResponse(images=list(map(encode_pil_to_base64, result[0])), html_info=result[1])
+        # return ExtrasBatchImagesResponse(images=list(map(encode_pil_to_base64, result[0])), html_info=result[1])
 
     def pnginfoapi(self, req: PNGInfoRequest):
         if(not req.image.strip()):

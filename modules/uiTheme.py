@@ -4,6 +4,21 @@ from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 from typing import Iterable
 
+
+theme = gr.themes.Base(
+    primary_hue="sky",
+    secondary_hue="orange",
+    neutral_hue="stone",
+    spacing_size="spacing_sm",
+).set(
+    shadow_drop='none',
+    shadow_drop_lg='none',
+    shadow_inset='none',
+    shadow_spread='none',
+    shadow_spread_dark='none'
+)
+
+
 class Seafoam(Base):
     def __init__(
         self,
